@@ -40,19 +40,7 @@
         />
     </record>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('main_so_only_products'))]"
-        />
-    </function>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('main_so_only_products'))]"
-        />
-    </function>
 
     <!-- Repair Order with only services test -->
     <record id="main_so_only_services" model="repair.order">
@@ -87,26 +75,8 @@
         />
     </record>
 
-    <function model="repair.fee" name="_onchange_product_id_fiscal">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('main_so_only_services'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('main_so_only_services'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('main_so_only_services'))]"
-        />
-    </function>
 
     <!-- Repair Order with product and service test -->
     <record id="main_so_product_service" model="repair.order">
@@ -163,40 +133,10 @@
         />
     </record>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('main_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('main_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_product_id_fiscal">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('main_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('main_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('main_so_product_service'))]"
-        />
-    </function>
 
     <!-- Empresa Lucro Presumido -->
     <!-- Repair Order with only products test -->
@@ -235,19 +175,7 @@
         />
     </record>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('lc_so_only_products'))]"
-        />
-    </function>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('lc_so_only_products'))]"
-        />
-    </function>
 
     <!-- Repair Order with only services test -->
     <record id="lc_so_only_services" model="repair.order">
@@ -282,26 +210,8 @@
         />
     </record>
 
-    <function model="repair.fee" name="_onchange_product_id_fiscal">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('lc_so_only_services'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('lc_so_only_services'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('lc_so_only_services'))]"
-        />
-    </function>
 
     <!-- Repair Order with product and service test -->
     <record id="lc_so_product_service" model="repair.order">
@@ -358,40 +268,10 @@
         />
     </record>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('lc_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('lc_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_product_id_fiscal">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('lc_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('lc_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('lc_so_product_service'))]"
-        />
-    </function>
 
     <!-- Simples Nacional -->
     <!-- Repair Order with only products test -->
@@ -430,19 +310,7 @@
         />
     </record>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('sn_so_only_products'))]"
-        />
-    </function>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('sn_so_only_products'))]"
-        />
-    </function>
 
     <!-- Repair Order with only services test -->
     <record id="sn_so_only_services" model="repair.order">
@@ -477,26 +345,8 @@
         />
     </record>
 
-    <function model="repair.fee" name="_onchange_product_id_fiscal">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('sn_so_only_services'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('sn_so_only_services'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('sn_so_only_services'))]"
-        />
-    </function>
 
     <!-- Repair Order with product and service test -->
     <record id="sn_so_product_service" model="repair.order">
@@ -553,39 +403,9 @@
         />
     </record>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('sn_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.line" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.line"
-            search="[('repair_id', '=', ref('sn_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_product_id_fiscal">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('sn_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('sn_so_product_service'))]"
-        />
-    </function>
 
-    <function model="repair.fee" name="_onchange_fiscal_operation_line_id">
-        <value
-            model="repair.fee"
-            search="[('repair_id', '=', ref('sn_so_product_service'))]"
-        />
-    </function>
 
 </odoo>

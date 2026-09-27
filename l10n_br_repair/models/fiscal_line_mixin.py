@@ -20,23 +20,28 @@ class FiscalLineMixin(models.AbstractModel):
     )
 
     price_gross = fields.Monetary(
-        compute="_compute_price_subtotal",
+        compute="_compute_price_gross",
         string="Gross Amount",
         default=0.00,
     )
 
     price_total = fields.Monetary(
-        compute="_compute_price_subtotal",
+        compute="_compute_price_total_and_subtotal",
         default=0.00,
     )
 
     price_subtotal = fields.Float(
         "Subtotal",
-        compute="_compute_price_subtotal",
+        compute="_compute_price_total_and_subtotal",
         digits="Product Price",
     )
 
     fiscal_operation_type = fields.Selection(string="Fiscal Operation Type")
+
+    @api.depends("fiscal_amount_untaxed")
+    def _compute_price_gross(self):
+        for line in self:
+            line.price_gross = line.fiscal_amount_untaxed
 
     @api.model
     def _fiscal_operation_domain(self):
@@ -46,9 +51,14 @@ class FiscalLineMixin(models.AbstractModel):
     def _prepare_invoice_line(self):
         self.ensure_one()
         product = self.product_id.with_company(self.company_id.id)
-        partner_invoice = self.repair_id.partner_invoice_id or self.repair_id.partner_id
-        fpos = self.env["account.fiscal.position"].get_fiscal_position(
-            partner_invoice.id, delivery_id=self.repair_id.address_id.id
+        repair = self.repair_id
+        fpos = (
+            self.env["account.fiscal.position"]
+            .with_company(repair.company_id)
+            ._get_fiscal_position(
+                repair.partner_invoice_id or repair.partner_id,
+                delivery=repair.address_id,
+            )
         )
         account = product.product_tmpl_id.get_product_accounts(fiscal_pos=fpos)[
             "income"
@@ -68,7 +78,6 @@ class FiscalLineMixin(models.AbstractModel):
     @api.onchange("fiscal_tax_ids")
     def _onchange_fiscal_tax_ids(self):
         if self.product_id and self.fiscal_operation_line_id:
-            super()._onchange_fiscal_tax_ids()
             self.tax_id = self.fiscal_tax_ids.account_taxes(
                 user_type="sale", fiscal_operation=self.fiscal_operation_id
             )

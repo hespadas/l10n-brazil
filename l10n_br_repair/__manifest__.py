@@ -3,9 +3,8 @@
 
 {
     "name": "Brazilian Localization Repair",
-    "summary": """
-        Brazilian Localization Repair""",
-    "version": "14.0.2.0.0",
+    "summary": "Brazilian Localization Repair",
+    "version": "16.0.1.0.0",
     "category": "Localisation",
     "license": "AGPL-3",
     "author": "Escodoo, " "Odoo Community Association (OCA)",
@@ -25,6 +24,9 @@
         "views/repair_line.xml",
         "report/repair_templates_repair_order.xml",
     ],
-    "demo": ["demo/res_company.xml", "demo/repair_order.xml"],
+    "demo": [
+        "demo/res_company.xml",
+        "demo/repair_order.xml",
+    ],
     "installable": True,
 }

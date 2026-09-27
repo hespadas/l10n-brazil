@@ -58,26 +58,16 @@ class RepairLine(models.Model):
     price_subtotal = fields.Monetary(compute_sudo=True)
     price_gross = fields.Monetary(compute_sudo=True)
 
-    @api.depends(
-        "price_unit",
-        "repair_id",
-        "product_uom_qty",
-        "product_id",
-        "repair_id.invoice_method",
-    )
-    def _compute_price_subtotal(self):
-        result = super()._compute_price_subtotal()
+    @api.depends("price_unit", "repair_id", "product_uom_qty", "product_id", "tax_id")
+    def _compute_price_total_and_subtotal(self):
+        result = super()._compute_price_total_and_subtotal()
         for line in self:
-            # Update taxes fields
-            line._update_fiscal_taxes()
-            # Call mixin compute method
-            line._compute_amounts()
-            # Update record
+            line._compute_fiscal_amounts()
             line.update(
                 {
-                    "price_subtotal": line.amount_untaxed,
-                    "price_gross": line.amount_untaxed,
-                    "price_total": line.amount_total,
+                    "price_subtotal": line.fiscal_amount_untaxed,
+                    "price_gross": line.fiscal_amount_untaxed,
+                    "price_total": line.fiscal_amount_total,
                 }
             )
         return result

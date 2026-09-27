@@ -75,9 +75,9 @@ class RepairFee(models.Model):
             # Update record
             line.update(
                 {
-                    "price_subtotal": line.amount_untaxed,
-                    "price_gross": line.amount_untaxed,
-                    "price_total": line.amount_total,
+                    "price_subtotal": line.fiscal_amount_untaxed,
+                    "price_gross": line.fiscal_amount_untaxed,
+                    "price_total": line.fiscal_amount_total,
                 }
             )
         return result

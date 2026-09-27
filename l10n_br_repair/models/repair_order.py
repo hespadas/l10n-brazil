@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.osv import expression
 
@@ -89,12 +89,30 @@ class RepairOrder(models.Model):
         copy=False,
     )
 
+    @api.model
+    def _get_fiscal_lines_field_name(self):
+        return "operations"
+
     def _get_amount_lines(self):
-        """Get object lines instaces used to compute fields"""
         lines = []
-        lines += [lin for lin in self.mapped("operations")]
-        lines += [lin for lin in self.mapped("fees_lines")]
+        lines += [line for line in self.mapped("operations")]
+        lines += [line for line in self.mapped("fees_lines")]
         return lines
+
+    def _get_fiscal_amount_field_dependencies(self):
+        if self._abstract:
+            return []
+        amount_fields = self._get_amount_fields()
+        deps = []
+        for o2m in ("operations", "fees_lines"):
+            line_fields = self.env[self._fields[o2m].comodel_name]._fields
+            deps.append(o2m)
+            deps += [
+                f"{o2m}.{field.replace('amount_', '')}"
+                for field in amount_fields
+                if field.replace("amount_", "") in line_fields
+            ]
+        return deps
 
     def _get_product_amount_lines(self):
         """Get object lines instaces used to compute fields"""
@@ -103,7 +121,7 @@ class RepairOrder(models.Model):
 
     @api.depends("operations", "fees_lines")
     def _compute_amount(self):
-        return super()._compute_amount()
+        return self._compute_fiscal_amount()
 
     @api.depends(
         "operations.price_subtotal",
@@ -261,24 +279,34 @@ class RepairOrder(models.Model):
                 _("You have to select an invoice address in the repair form.")
             )
 
-        narration = self.quotation_notes
-        currency = self.pricelist_id.currency_id
-        company = self.env.company
+        company = self.company_id
+        currency = self.pricelist_id.currency_id or company.currency_id
 
-        journal = (
-            self.env["account.move"]
-            .with_context(default_move_type="out_invoice")
-            ._get_default_journal()
-        )
+        # Sem diário na operação, evita cair em diários de devolução/remessa sem conta
+        journal = self.fiscal_operation_id.with_company(company).journal_id
+        if not journal:
+            journal = self.env["account.journal"].search(
+                [
+                    ("company_id", "=", company.id),
+                    ("type", "=", "sale"),
+                    ("default_account_id", "!=", False),
+                ],
+                limit=1,
+            )
         if not journal:
             raise UserError(
                 _(
-                    "Please define an accounting sales journal for the company {} ({})."
-                ).format(self.company_id.name, self.company_id.id)
+                    "Please define an accounting sales journal for the company"
+                    " %(name)s (%(id)s).",
+                    name=company.name,
+                    id=company.id,
+                )
             )
 
-        fpos = self.env["account.fiscal.position"].get_fiscal_position(
-            partner_invoice.id, delivery_id=self.address_id.id
+        fpos = (
+            self.env["account.fiscal.position"]
+            .with_company(company)
+            ._get_fiscal_position(partner_invoice, delivery=self.address_id)
         )
 
         invoice_vals = {
@@ -286,12 +314,13 @@ class RepairOrder(models.Model):
             "partner_id": partner_invoice.id,
             "partner_shipping_id": self.address_id.id,
             "currency_id": currency.id,
-            "narration": narration,
+            "narration": self.quotation_notes,
             "invoice_origin": self.name,
-            "repair_ids": [(4, self.id)],
+            "repair_ids": [Command.link(self.id)],
             "invoice_line_ids": [],
             "fiscal_position_id": fpos.id,
             "company_id": company.id,
+            "journal_id": journal.id,
         }
 
         if partner_invoice.property_payment_term_id:
@@ -302,14 +331,13 @@ class RepairOrder(models.Model):
         invoice_vals.update(self._prepare_br_fiscal_dict())
 
         document_type_id = self._context.get("document_type_id")
-
         if document_type_id:
             document_type = self.env["l10n_br_fiscal.document.type"].browse(
                 document_type_id
             )
         else:
-            document_type = self.company_id.document_type_id
-            document_type_id = self.company_id.document_type_id.id
+            document_type = company.document_type_id
+            document_type_id = document_type.id
 
         if document_type:
             invoice_vals["document_type_id"] = document_type_id
@@ -470,12 +498,16 @@ class RepairOrder(models.Model):
         self.ensure_one()
 
         document_type_list = []
+        fiscal_document_type = self.env["l10n_br_fiscal.document.type"]
 
         inv_ids = []
         invoice_created_by_super = self.invoice_id
         inv_ids += invoice_created_by_super
         for inv_line in invoice_created_by_super.invoice_line_ids:
-            if inv_line.display_type or not inv_line.fiscal_operation_line_id:
+            if (
+                inv_line.display_type != "product"
+                or not inv_line.fiscal_operation_line_id
+            ):
                 continue
 
             fiscal_document_type = inv_line.fiscal_operation_line_id.get_document_type(
@@ -485,14 +517,12 @@ class RepairOrder(models.Model):
             if fiscal_document_type.id not in document_type_list:
                 document_type_list.append(fiscal_document_type.id)
 
-            # Check if there more than one Document Type
+        if not document_type_list:
+            return
+
         if (
             fiscal_document_type.id != invoice_created_by_super.document_type_id.id
         ) or (len(document_type_list) > 1):
-            # Remove the First Document Type,
-            # already has Invoice created
-            invoice_created_by_super.document_type_id = document_type_list.pop(0)
-
             for document_type in document_type_list:
                 document_type = self.env["l10n_br_fiscal.document.type"].browse(
                     document_type
@@ -532,6 +562,11 @@ class RepairOrder(models.Model):
 
                 # Update Invoice Line
                 for inv_line in invoice_created_by_super.invoice_line_ids:
+                    if (
+                        inv_line.display_type != "product"
+                        or not inv_line.fiscal_operation_line_id
+                    ):
+                        continue
                     fiscal_document_type = (
                         inv_line.fiscal_operation_line_id.get_document_type(
                             inv_line.move_id.company_id
@@ -539,10 +574,13 @@ class RepairOrder(models.Model):
                     )
                     if fiscal_document_type.id == document_type.id:
                         copied_vals = inv_line.copy_data()[0]
-                        copied_vals["move_id"] = invoice.id
-                        copied_vals["recompute_tax_line"] = True
-                        new_line = self.env["account.move.line"].new(copied_vals)
-                        invoice.invoice_line_ids += new_line
+                        copied_vals.pop("move_id", None)
+                        invoice.write(
+                            {"invoice_line_ids": [Command.create(copied_vals)]}
+                        )
+                        invoice_created_by_super.write(
+                            {"invoice_line_ids": [Command.delete(inv_line.id)]}
+                        )
                         # order_line = self.order_line.filtered(
                         #     lambda x: x.invoice_lines in inv_line
                         # )
