@@ -149,21 +149,14 @@ class L10nBrRepairBaseTest(SavepointCase):
 
     def _run_repair_order_onchanges(self, repair_order):
         repair_order.onchange_partner_id()
-        repair_order._onchange_fiscal_operation_id()
 
     def _run_operations_onchanges(self, operations):
-        operations._onchange_product_id_fiscal()
         operations._onchange_product_uom()
-        operations._onchange_fiscal_operation_id()
-        operations._onchange_fiscal_operation_line_id()
         operations._onchange_fiscal_taxes()
         operations._onchange_fiscal_tax_ids()
 
     def _run_fees_lines_onchanges(self, fees_lines):
-        fees_lines._onchange_product_id_fiscal()
         fees_lines._onchange_product_uom()
-        fees_lines._onchange_fiscal_operation_id()
-        fees_lines._onchange_fiscal_operation_line_id()
         fees_lines._onchange_fiscal_taxes()
         fees_lines._onchange_fiscal_tax_ids()
 
