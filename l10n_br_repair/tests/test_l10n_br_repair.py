@@ -700,5 +700,5 @@ class L10nBrRepairBaseTest(SavepointCase):
         act1 = self.so_services.action_created_invoice()
         self.assertTrue(act1)
 
-        act2 = self.so_services.fields_view_get()
+        act2 = self.so_services.get_view()
         self.assertTrue(act2)

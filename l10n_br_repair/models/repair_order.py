@@ -216,44 +216,12 @@ class RepairOrder(models.Model):
             )
 
     @api.model
-    def fields_view_get(
-        self, view_id=None, view_type="form", toolbar=False, submenu=False
-    ):
-        order_view = super().fields_view_get(view_id, view_type, toolbar, submenu)
-
+    def _get_view(self, view_id=None, view_type="form", **options):
+        arch, view = super()._get_view(view_id, view_type, **options)
         if view_type == "form":
-            view = self.env["ir.ui.view"]
-
-            sub_form_view = order_view["fields"]["operations"]["views"]["form"]["arch"]
-
-            sub_form_node = self.env["repair.line"].inject_fiscal_fields(sub_form_view)
-
-            sub_arch, sub_fields = view.postprocess_and_fields(
-                sub_form_node, "repair.line", False
-            )
-
-            order_view["fields"]["operations"]["views"]["form"] = {
-                "fields": sub_fields,
-                "arch": sub_arch,
-            }
-
-        if view_type == "form":
-            view = self.env["ir.ui.view"]
-
-            sub_form_view = order_view["fields"]["fees_lines"]["views"]["form"]["arch"]
-
-            sub_form_node = self.env["repair.fee"].inject_fiscal_fields(sub_form_view)
-
-            sub_arch, sub_fields = view.postprocess_and_fields(
-                sub_form_node, "repair.fee", False
-            )
-
-            order_view["fields"]["fees_lines"]["views"]["form"] = {
-                "fields": sub_fields,
-                "arch": sub_arch,
-            }
-
-        return order_view
+            arch = self.env["repair.line"].inject_fiscal_fields(arch)
+            arch = self.env["repair.fee"].inject_fiscal_fields(arch)
+        return arch, view
 
     def action_created_invoice(self):
         self.ensure_one()
