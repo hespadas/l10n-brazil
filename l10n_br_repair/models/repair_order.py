@@ -592,9 +592,12 @@ class RepairOrder(models.Model):
                         #     order_line.invoice_lines = invoice.invoice_line_ids
                         invoice_created_by_super.invoice_line_ids -= inv_line
 
-        invoice_created_by_super.document_serie_id = (
-            fiscal_document_type.get_document_serie(
-                invoice_created_by_super.company_id,
-                invoice_created_by_super.fiscal_operation_id,
+        if not invoice_created_by_super.invoice_line_ids:
+            invoice_created_by_super.unlink()
+        else:
+            invoice_created_by_super.document_serie_id = (
+                fiscal_document_type.get_document_serie(
+                    invoice_created_by_super.company_id,
+                    invoice_created_by_super.fiscal_operation_id,
+                )
             )
-        )
