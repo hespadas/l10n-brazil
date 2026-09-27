@@ -119,9 +119,26 @@ class RepairOrder(models.Model):
 
         return self._get_amount_lines()
 
-    @api.depends("operations", "fees_lines")
+    @api.depends(
+        "operations.fiscal_amount_untaxed",
+        "operations.fiscal_amount_total",
+        "fees_lines.fiscal_amount_untaxed",
+        "fees_lines.fiscal_amount_total",
+    )
     def _compute_amount(self):
-        return self._compute_fiscal_amount()
+        # _compute_fiscal_amount (l10n_br_fiscal.document.mixin) aggregates
+        # line totals by matching field names (e.g. doc.amount_untaxed <-
+        # line.amount_untaxed/untaxed), but repair.line/repair.fee expose
+        # fiscal_amount_untaxed/fiscal_amount_total to avoid clashing with
+        # core repair fields, so that generic matching never finds them.
+        for order in self:
+            order.amount_untaxed = sum(
+                order.operations.mapped("fiscal_amount_untaxed")
+            ) + sum(order.fees_lines.mapped("fiscal_amount_untaxed"))
+            order.amount_total = sum(
+                order.operations.mapped("fiscal_amount_total")
+            ) + sum(order.fees_lines.mapped("fiscal_amount_total"))
+            order.amount_tax = order.amount_total - order.amount_untaxed
 
     @api.depends(
         "operations.price_subtotal",
